@@ -31,18 +31,37 @@ internal static class PanelStyle
     private static readonly Color FallbackWood = new Color(0.47f, 0.31f, 0.18f, 1f);
 
     private static Sprite? wood;
+    private static Image? inventoryWood;
     private static bool searched;
 
-    /// <summary>Gives an image the game's wood, or a solid wood colour if the game's can't be found.</summary>
+    /// <summary>
+    /// Gives an image the inventory panel's own wood, with its tint and material, so every panel matches the inventory. Without that it falls back to
+    /// any wood sprite of the game's, and then to a solid wood colour, so a panel is never see-through.
+    /// </summary>
     /// <param name="target">The panel's background.</param>
     /// <param name="gui">The inventory screen to look for the wood under first.</param>
     internal static void Wood(Image target, InventoryGui gui)
     {
-        if (wood == null && !searched)
+        if (!searched)
         {
             searched = true;
-            wood = Find(gui);
-            Log(wood == null ? "no woodpanel sprite found; panels use a solid colour" : "panels use sprite '" + wood.name + "'");
+            inventoryWood = InventoryWood(gui);
+            wood = inventoryWood == null ? Find(gui) : null;
+            Log(inventoryWood != null
+                ? "panels copy the inventory's '" + inventoryWood.name + "' (sprite '" + inventoryWood.sprite.name + "', colour " + inventoryWood.color + ")"
+                : wood == null ? "no woodpanel sprite found; panels use a solid colour" : "panels use sprite '" + wood.name + "'");
+        }
+
+        if (inventoryWood != null)
+        {
+            target.sprite = inventoryWood.sprite;
+            target.type = inventoryWood.type;
+            target.material = inventoryWood.material;
+            target.pixelsPerUnitMultiplier = inventoryWood.pixelsPerUnitMultiplier;
+            Color color = inventoryWood.color;
+            color.a = 1f;
+            target.color = color;
+            return;
         }
 
         if (wood == null)
@@ -55,6 +74,40 @@ internal static class PanelStyle
         target.type = wood.border.sqrMagnitude > 0f ? Image.Type.Sliced : Image.Type.Simple;
         target.color = Color.white;
     }
+
+    /// <summary>
+    /// The visible wood behind the inventory grid: the largest shown, opaque woodpanel image under the inventory panel. Hidden images and the
+    /// selection frame (a yellow woodpanel mask the game keeps behind the panel) are skipped. Every candidate is logged once, to check the pick.
+    /// </summary>
+    private static Image? InventoryWood(InventoryGui gui)
+    {
+        Image? best = null;
+        float bestArea = 0f;
+        var seen = new System.Text.StringBuilder();
+        foreach (Image image in gui.m_player.GetComponentsInChildren<Image>(true))
+        {
+            if (image.sprite == null || image.sprite.name.IndexOf(WoodSpriteName, StringComparison.OrdinalIgnoreCase) < 0)
+            {
+                continue;
+            }
+
+            Rect rect = image.rectTransform.rect;
+            float area = rect.width * rect.height;
+            seen.Append(" [").Append(image.name).Append(" / ").Append(image.sprite.name).Append(", shown ").Append(image.isActiveAndEnabled)
+                .Append(';').Append(image.color).Append(';').Append((int)rect.width).Append('x').Append((int)rect.height).Append(']');
+            if (image.isActiveAndEnabled && image.color.a >= 0.5f && !Excluded(image.name) && !Excluded(image.sprite.name) && area > bestArea)
+            {
+                best = image;
+                bestArea = area;
+            }
+        }
+
+        Log("inventory candidates:" + seen);
+        return best;
+    }
+
+    private static bool Excluded(string name) =>
+        name.IndexOf("selected", StringComparison.OrdinalIgnoreCase) >= 0 || name.IndexOf("mask", StringComparison.OrdinalIgnoreCase) >= 0;
 
     private static Sprite? Find(InventoryGui gui)
     {

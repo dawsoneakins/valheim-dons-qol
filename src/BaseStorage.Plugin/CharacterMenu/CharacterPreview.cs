@@ -158,7 +158,7 @@ internal static class CharacterPreview
         view.allowMSAA = false;
         view.depth = -100f;
         view.targetTexture = texture;
-        cameraNode.AddComponent<CharacterViewFog>();
+        CharacterViewFog viewOnly = cameraNode.AddComponent<CharacterViewFog>();
         backdrop = MakeBackdrop();
         var drawBackdrop = new CommandBuffer();
         drawBackdrop.Blit(backdrop, BuiltinRenderTextureType.CameraTarget);
@@ -171,6 +171,11 @@ internal static class CharacterPreview
         light.intensity = 1.1f;
         light.cullingMask = 1 << ViewLayer;
         light.shadows = LightShadows.None;
+
+        // A culling mask doesn't hold the light to the character in every rendering path, and a lit world looks washed out, so the light
+        // is on only while the view's own camera draws.
+        light.enabled = false;
+        viewOnly.Light = light;
 
         image!.texture = texture;
     }
@@ -258,18 +263,36 @@ internal static class CharacterPreview
     }
 }
 
-/// <summary>Turns the world's fog off for the view's camera alone, because the character is seen far below the world, where it would wash out.</summary>
+/// <summary>
+/// Sets up the scene for the view's camera alone: the world's fog goes off, because the character is seen far below the world where it would wash
+/// out, and the view's light comes on, because nothing else may be lit by it. Both are put back as soon as that camera has drawn.
+/// </summary>
 internal sealed class CharacterViewFog : MonoBehaviour
 {
     private bool fog;
+
+    /// <summary>Gets or sets the light that only this camera's drawing may use.</summary>
+    internal Light? Light { get; set; }
 
     private void OnPreRender()
     {
         fog = RenderSettings.fog;
         RenderSettings.fog = false;
+        if (Light != null)
+        {
+            Light.enabled = true;
+        }
     }
 
-    private void OnPostRender() => RenderSettings.fog = fog;
+    private void OnPostRender()
+    {
+        if (Light != null)
+        {
+            Light.enabled = false;
+        }
+
+        RenderSettings.fog = fog;
+    }
 }
 
 /// <summary>Turns the character when the view is dragged.</summary>
