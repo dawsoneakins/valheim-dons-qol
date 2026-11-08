@@ -51,11 +51,17 @@ internal static class CharacterPanel
     /// <summary>Shows, hides and refreshes the panel.</summary>
     internal static void Tick() => PatchSafety.Run(TickKey, TickBody);
 
+    /// <summary>The game's own dialogs over the inventory would sit under the panel, which is built later, so the panel steps aside for them.</summary>
+    private static bool DialogOpen(InventoryGui gui) =>
+        Shown(gui.m_splitDialog) || Shown(gui.m_variantDialog) || Shown(gui.m_skillsDialog) || Shown(gui.m_textsDialog);
+
+    private static bool Shown(Component? dialog) => dialog != null && dialog.gameObject.activeInHierarchy;
+
     private static void TickBody()
     {
         InventoryGui? gui = InventoryGui.instance;
         Player? player = Player.m_localPlayer;
-        if (gui == null || player == null || !InventoryGui.IsVisible() || gui.m_currentContainer != null || Compendium.CompendiumWindow.IsOpen || BaseMove.BasesWindow.IsOpen)
+        if (gui == null || player == null || !InventoryGui.IsVisible() || gui.m_currentContainer != null || Compendium.CompendiumWindow.IsOpen || BaseMove.BasesWindow.IsOpen || DialogOpen(gui))
         {
             if (panel != null)
             {
