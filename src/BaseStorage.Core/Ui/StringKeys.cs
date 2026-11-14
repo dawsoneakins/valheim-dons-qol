@@ -327,6 +327,15 @@ public static class StringKeys
     /// <summary>Raises the amount left in the base.</summary>
     public const string FeedMore = "feed.more";
 
+    /// <summary>A cooking station leaves cooked food where it is.</summary>
+    public const string FeedCollectOff = "feed.collect.off";
+
+    /// <summary>A cooking station sends cooked food to a base chest.</summary>
+    public const string FeedCollectChests = "feed.collect.chests";
+
+    /// <summary>A cooking station drops cooked food beside it.</summary>
+    public const string FeedCollectDrop = "feed.collect.drop";
+
     /// <summary>The menu button that makes a left click mark favourites.</summary>
     public const string MenuMark = "menu.mark";
 
@@ -890,4 +899,223 @@ public static class StringKeys
 
     /// <summary>The text with the key bases.rename-denied.</summary>
     public const string BasesRenameDenied = "bases.rename-denied";
+
+    /// <summary>The text with the key compendium.tab.home.</summary>
+    public const string CompendiumTabHome = "compendium.tab.home";
+
+    /// <summary>The text with the key compendium.tab.frontier.</summary>
+    public const string CompendiumTabFrontier = "compendium.tab.frontier";
+
+    /// <summary>The text with the key compendium.tab.settings.</summary>
+    public const string CompendiumTabSettings = "compendium.tab.settings";
+
+    /// <summary>The text with the key compendium.home.title.</summary>
+    public const string CompendiumHomeTitle = "compendium.home.title";
+
+    /// <summary>The text with the key compendium.section.journey.</summary>
+    public const string CompendiumSectionJourney = "compendium.section.journey";
+
+    /// <summary>The text with the key compendium.journey.biome.</summary>
+    public const string CompendiumJourneyBiome = "compendium.journey.biome";
+
+    /// <summary>The text with the key compendium.journey.unvisited.</summary>
+    public const string CompendiumJourneyUnvisited = "compendium.journey.unvisited";
+
+    /// <summary>The text with the key compendium.section.recent.</summary>
+    public const string CompendiumSectionRecent = "compendium.section.recent";
+
+    /// <summary>The text with the key compendium.recent.new.</summary>
+    public const string CompendiumRecentNew = "compendium.recent.new";
+
+    /// <summary>The text with the key compendium.recent.none.</summary>
+    public const string CompendiumRecentNone = "compendium.recent.none";
+
+    /// <summary>The text with the key compendium.section.ready.</summary>
+    public const string CompendiumSectionReady = "compendium.section.ready";
+
+    /// <summary>The text with the key compendium.ready.line.</summary>
+    public const string CompendiumReadyLine = "compendium.ready.line";
+
+    /// <summary>The text with the key compendium.ready.outside.</summary>
+    public const string CompendiumReadyOutside = "compendium.ready.outside";
+
+    /// <summary>The text with the key compendium.ready.none.</summary>
+    public const string CompendiumReadyNone = "compendium.ready.none";
+
+    /// <summary>The text with the key compendium.section.reach.</summary>
+    public const string CompendiumSectionReach = "compendium.section.reach";
+
+    /// <summary>The text with the key compendium.reach.more.</summary>
+    public const string CompendiumReachMore = "compendium.reach.more";
+
+    /// <summary>The text with the key compendium.reach.none.</summary>
+    public const string CompendiumReachNone = "compendium.reach.none";
+
+    /// <summary>The text with the key compendium.frontier.title.</summary>
+    public const string CompendiumFrontierTitle = "compendium.frontier.title";
+
+    /// <summary>The text with the key compendium.frontier.intro.</summary>
+    public const string CompendiumFrontierIntro = "compendium.frontier.intro";
+
+    /// <summary>The text with the key compendium.frontier.empty.</summary>
+    public const string CompendiumFrontierEmpty = "compendium.frontier.empty";
+
+    /// <summary>The text with the key compendium.frontier.creature.</summary>
+    public const string CompendiumFrontierCreature = "compendium.frontier.creature";
+
+    /// <summary>The text with the key compendium.frontier.item.</summary>
+    public const string CompendiumFrontierItem = "compendium.frontier.item";
+
+    /// <summary>The text with the key compendium.section.hints.</summary>
+    public const string CompendiumSectionHints = "compendium.section.hints";
+
+    /// <summary>The text with the key compendium.hint.numbered.</summary>
+    public const string CompendiumHintNumbered = "compendium.hint.numbered";
+
+    /// <summary>The text with the key compendium.hint.name.</summary>
+    public const string CompendiumHintName = "compendium.hint.name";
+
+    /// <summary>The text with the key compendium.section.next.</summary>
+    public const string CompendiumSectionNext = "compendium.section.next";
+
+    /// <summary>The text with the key compendium.action.next.</summary>
+    public const string CompendiumActionNext = "compendium.action.next";
+
+    /// <summary>The text with the key compendium.action.reveal.</summary>
+    public const string CompendiumActionReveal = "compendium.action.reveal";
+
+    /// <summary>The text with the key compendium.action.confirm.</summary>
+    public const string CompendiumActionConfirm = "compendium.action.confirm";
+
+    /// <summary>The text with the key compendium.action.track.</summary>
+    public const string CompendiumActionTrack = "compendium.action.track";
+
+    /// <summary>The text with the key compendium.action.untrack.</summary>
+    public const string CompendiumActionUntrack = "compendium.action.untrack";
+
+    /// <summary>The text with the key compendium.hint.locked.</summary>
+    public const string CompendiumHintLocked = "compendium.hint.locked";
+
+    /// <summary>The text with the key compendium.hint.never.</summary>
+    public const string CompendiumHintNever = "compendium.hint.never";
+
+    /// <summary>The text with the key compendium.hint.where.</summary>
+    public const string CompendiumHintWhere = "compendium.hint.where";
+
+    /// <summary>The text with the key compendium.hint.creature.</summary>
+    public const string CompendiumHintCreature = "compendium.hint.creature";
+
+    /// <summary>The text with the key compendium.hint.boss.</summary>
+    public const string CompendiumHintBoss = "compendium.hint.boss";
+
+    /// <summary>The text with the key compendium.hint.dropped-known.</summary>
+    public const string CompendiumHintDroppedKnown = "compendium.hint.dropped-known";
+
+    /// <summary>The text with the key compendium.hint.gathered.</summary>
+    public const string CompendiumHintGathered = "compendium.hint.gathered";
+
+    /// <summary>The text with the key compendium.hint.dropped-unknown.</summary>
+    public const string CompendiumHintDroppedUnknown = "compendium.hint.dropped-unknown";
+
+    /// <summary>The text with the key compendium.hint.from.</summary>
+    public const string CompendiumHintFrom = "compendium.hint.from";
+
+    /// <summary>The text with the key compendium.hint.uses.</summary>
+    public const string CompendiumHintUses = "compendium.hint.uses";
+
+    /// <summary>The text with the key compendium.hint.no-uses.</summary>
+    public const string CompendiumHintNoUses = "compendium.hint.no-uses";
+
+    /// <summary>The text with the key compendium.hint.dropper-health.</summary>
+    public const string CompendiumHintDropperHealth = "compendium.hint.dropper-health";
+
+    /// <summary>The text with the key compendium.hint.ahead.</summary>
+    public const string CompendiumHintAhead = "compendium.hint.ahead";
+
+    /// <summary>The text with the key compendium.settings.title.</summary>
+    public const string CompendiumSettingsTitle = "compendium.settings.title";
+
+    /// <summary>The text with the key compendium.settings.intro.</summary>
+    public const string CompendiumSettingsIntro = "compendium.settings.intro";
+
+    /// <summary>The text with the key compendium.section.spoilers.</summary>
+    public const string CompendiumSectionSpoilers = "compendium.section.spoilers";
+
+    /// <summary>The text with the key compendium.settings.hidden.</summary>
+    public const string CompendiumSettingsHidden = "compendium.settings.hidden";
+
+    /// <summary>The text with the key compendium.settings.hints.</summary>
+    public const string CompendiumSettingsHints = "compendium.settings.hints";
+
+    /// <summary>The text with the key compendium.settings.ahead.</summary>
+    public const string CompendiumSettingsAhead = "compendium.settings.ahead";
+
+    /// <summary>The text with the key compendium.settings.chosen.</summary>
+    public const string CompendiumSettingsChosen = "compendium.settings.chosen";
+
+    /// <summary>The text with the key compendium.section.second-hint.</summary>
+    public const string CompendiumSectionSecondHint = "compendium.section.second-hint";
+
+    /// <summary>The text with the key compendium.settings.half.</summary>
+    public const string CompendiumSettingsHalf = "compendium.settings.half";
+
+    /// <summary>The text with the key compendium.settings.now.</summary>
+    public const string CompendiumSettingsNow = "compendium.settings.now";
+
+    /// <summary>The text with the key compendium.settings.never.</summary>
+    public const string CompendiumSettingsNever = "compendium.settings.never";
+
+    /// <summary>The text with the key compendium.section.display.</summary>
+    public const string CompendiumSectionDisplay = "compendium.section.display";
+
+    /// <summary>The text with the key compendium.settings.toggle.</summary>
+    public const string CompendiumSettingsToggle = "compendium.settings.toggle";
+
+    /// <summary>The text with the key compendium.settings.on.</summary>
+    public const string CompendiumSettingsOn = "compendium.settings.on";
+
+    /// <summary>The text with the key compendium.settings.off.</summary>
+    public const string CompendiumSettingsOff = "compendium.settings.off";
+
+    /// <summary>The text with the key compendium.settings.counts.</summary>
+    public const string CompendiumSettingsCounts = "compendium.settings.counts";
+
+    /// <summary>The text with the key compendium.settings.hud.</summary>
+    public const string CompendiumSettingsHud = "compendium.settings.hud";
+
+    /// <summary>The text with the key compendium.settings.near.</summary>
+    public const string CompendiumSettingsNear = "compendium.settings.near";
+
+    /// <summary>The text with the key compendium.section.stock.</summary>
+    public const string CompendiumSectionStock = "compendium.section.stock";
+
+    /// <summary>The text with the key compendium.stock.line.</summary>
+    public const string CompendiumStockLine = "compendium.stock.line";
+
+    /// <summary>The text with the key compendium.stock.outside.</summary>
+    public const string CompendiumStockOutside = "compendium.stock.outside";
+
+    /// <summary>The text with the key compendium.stock.show.</summary>
+    public const string CompendiumStockShow = "compendium.stock.show";
+
+    /// <summary>The text with the key compendium.stock.make.</summary>
+    public const string CompendiumStockMake = "compendium.stock.make";
+
+    /// <summary>The text with the key compendium.section.best.</summary>
+    public const string CompendiumSectionBest = "compendium.section.best";
+
+    /// <summary>The text with the key compendium.best.line.</summary>
+    public const string CompendiumBestLine = "compendium.best.line";
+
+    /// <summary>The text with the key compendium.hud.title.</summary>
+    public const string CompendiumHudTitle = "compendium.hud.title";
+
+    /// <summary>The text with the key compendium.hud.here.</summary>
+    public const string CompendiumHudHere = "compendium.hud.here";
+
+    /// <summary>The text with the key compendium.hud.near.</summary>
+    public const string CompendiumHudNear = "compendium.hud.near";
+
+    /// <summary>The text with the key compendium.hud.found.</summary>
+    public const string CompendiumHudFound = "compendium.hud.found";
 }

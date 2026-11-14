@@ -50,7 +50,8 @@ public sealed class RestockStringsTests
             .Where(f => f.IsLiteral)
             .ToArray();
         // Edited by the base move, Put away selected, the character menu and the compendium, whose 145 keys now follow Restock's.
-        string[] last = constants.Skip(constants.Length - 8 - 167).Take(8).Select(f => f.Name).ToArray();
+        // Edited for the compendium journey: 73 more keys follow, 240 in all.
+        string[] last = constants.Skip(constants.Length - 8 - 240).Take(8).Select(f => f.Name).ToArray();
         Assert.Equal(
             new[]
             {

@@ -1631,6 +1631,9 @@ internal static class PatchTargetNames
 
         /// <summary>The routed call that adds one fuel item.</summary>
         public const string AddFuelRpc = "RPC_AddFuel";
+
+        /// <summary>The routed call that shows a slot's item to every player.</summary>
+        public const string SetSlotVisualRpc = "RPC_SetSlotVisual";
     }
 
     /// <summary>The Switch type: the ore and fuel inputs of a station.</summary>
@@ -1708,6 +1711,9 @@ internal static class PatchTargetNames
 
         /// <summary>The Humanoid.UnequipItem(ItemDrop+ItemData,System.Boolean) postfix of the character menu.</summary>
         public const string HumanoidUnequipItem = "Humanoid.UnequipItem(ItemDrop+ItemData,System.Boolean)";
+
+        /// <summary>The Inventory.CanAddItem(ItemDrop+ItemData,System.Int32) postfix of the character menu.</summary>
+        public const string InventoryCanAddItem = "Inventory.CanAddItem(ItemDrop+ItemData,System.Int32)";
 
         /// <summary>The Inventory.GetEmptySlots() postfix of the character menu.</summary>
         public const string InventoryGetEmptySlots = "Inventory.GetEmptySlots()";

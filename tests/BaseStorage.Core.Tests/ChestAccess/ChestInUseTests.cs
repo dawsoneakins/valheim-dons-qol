@@ -125,7 +125,7 @@ public sealed class ChestInUseTests
         // Edited by S-E008-001 (ADR-GWIN-152, feedback-audit 4.1): message.craft.used-base is appended last, so 84 keys.
         // Edited by S-E010-002 (organize-console-command 5): 84 plus the five console keys, 89.
         // Edited by S-A-003: 89 plus the rules and no-room reason sentences, 93.
-        Assert.Equal(319, English.Keys.Count); // Edited by the base move, Put away selected, the character menu and the compendium: 152 plus 25 plus 5 plus 11 plus 104
+        Assert.Equal(395, English.Keys.Count); // Edited for the compendium journey: plus 73. // Edited for cooked food: plus the three collect labels. // Edited by the base move, Put away selected, the character menu and the compendium: 152 plus 25 plus 5 plus 11 plus 104
 
         FieldInfo[] constants = typeof(StringKeys).GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly);
         Assert.Equal("PlayerUnknown", constants[47].Name);
@@ -133,20 +133,22 @@ public sealed class ChestInUseTests
         // Edited by S-E004-015 (ADR-GWIN-143): the offsets grow by 2, and the two Deposit constants follow the organize run keys.
         // Edited by S-E010-002 (organize-console-command 5): the five console constants follow MessageCraftUsedBase, so the offsets grow by 5.
         // Edited by S-QR-002 (ADR-GWIN-176): the offsets from the end grow by 8.
-        Assert.Equal("CategoryRefusalUnavailable", constants[constants.Length - 244].Name);
-        Assert.Equal("NetworkVersionMissing", constants[constants.Length - 243].Name);
-        Assert.Equal("ChestCategoryButton", constants[constants.Length - 242].Name);
-        Assert.Equal("MessageOrganizeRunSummary", constants[constants.Length - 241].Name);
-        Assert.Equal("OrganizeStopReasonLockLost", constants[constants.Length - 232].Name);
-        Assert.Equal("MessageDepositCancelled", constants[constants.Length - 231].Name);
-        Assert.Equal("MessageDepositSummaryStopped", constants[constants.Length - 230].Name);
+        // Edited for cooked food: the three collect labels follow FeedMore, so the offsets from the end grow by 3.
+        // Edited for the compendium journey: 73 keys appended last, so they grow by 73 more.
+        Assert.Equal("CategoryRefusalUnavailable", constants[constants.Length - 320].Name);
+        Assert.Equal("NetworkVersionMissing", constants[constants.Length - 319].Name);
+        Assert.Equal("ChestCategoryButton", constants[constants.Length - 318].Name);
+        Assert.Equal("MessageOrganizeRunSummary", constants[constants.Length - 317].Name);
+        Assert.Equal("OrganizeStopReasonLockLost", constants[constants.Length - 308].Name);
+        Assert.Equal("MessageDepositCancelled", constants[constants.Length - 307].Name);
+        Assert.Equal("MessageDepositSummaryStopped", constants[constants.Length - 306].Name);
         // Edited by S-E008-001 (ADR-GWIN-152): offsets from the end grow by 1; MessageCraftUsedBase is the new last constant.
-        Assert.Equal("MessageCraftUsedBase", constants[constants.Length - 229].Name);
-        Assert.Equal("ConsoleOrganizeStarted", constants[constants.Length - 228].Name);
-        Assert.Equal("ConsoleOrganizePreview", constants[constants.Length - 227].Name);
-        Assert.Equal("ConsoleOrganizeNoPlayer", constants[constants.Length - 226].Name);
-        Assert.Equal("ConsoleBasestorageUsage", constants[constants.Length - 225].Name);
-        Assert.Equal("ConsoleBasestorageDescription", constants[constants.Length - 224].Name);
+        Assert.Equal("MessageCraftUsedBase", constants[constants.Length - 305].Name);
+        Assert.Equal("ConsoleOrganizeStarted", constants[constants.Length - 304].Name);
+        Assert.Equal("ConsoleOrganizePreview", constants[constants.Length - 303].Name);
+        Assert.Equal("ConsoleOrganizeNoPlayer", constants[constants.Length - 302].Name);
+        Assert.Equal("ConsoleBasestorageUsage", constants[constants.Length - 301].Name);
+        Assert.Equal("ConsoleBasestorageDescription", constants[constants.Length - 300].Name);
     }
 
     // GW-U-782: the existing skip clause reads naturally with the fallback label.

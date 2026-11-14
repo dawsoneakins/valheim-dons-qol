@@ -18,16 +18,18 @@ A panel below the inventory with a live 3D view of the character between its slo
 
 ## 2. How worn items are stored
 
-A worn item stays in the player's `Inventory` with `m_gridPos` set to row 4, column 0 to 5. The inventory stays 8x4. Read from the game's code:
+A worn item stays in the player's `Inventory` with `m_gridPos` in the row just past the grid, column 0 to 5. That is row 4 for the normal 8x4 inventory, and one row further for each row a trader sells (`WornSlots.RowFor`). The inventory keeps its own size. Read from the game's code:
 
-- `Inventory.Load` adds items with the position check skipped, so row 4 survives saving and loading.
-- `InventoryGrid.UpdateGui` skips an item whose element is null, and `GetElement` returns null past the grid, so row 4 is not drawn.
-- `FindEmptySlot` searches only inside the grid, so nothing lands in row 4.
+- `Inventory.Load` adds items with the position check skipped, so the worn row survives saving and loading.
+- `InventoryGrid.UpdateGui` skips an item whose element is null, and `GetElement` returns null past the grid, so the worn row is not drawn.
+- `FindEmptySlot` searches only inside the grid, so nothing lands in the worn row.
 - `Humanoid.EquipItem` needs `m_inventory.ContainsItem`, which is why the items cannot live in a second inventory.
 - `GetBoundItems` reads row 0 only, so the hotbar is unaffected.
 - `Player.SetupVisEquipment` fills any `VisEquipment` from the player's gear, which is what the 3D view uses.
 
 `Humanoid.DropInvalidItems` drops anything outside the inventory, and `Player.SetInventorySize` calls it on every spawn with saved rows and when a trader sells a row. So it gets a prefix and finalizer that count the worn row as inside for exactly as long as it runs. Anything else out of place still drops.
+
+`SetInventorySize` raises the height before that check, so a bought row turns the old worn row into a grid row. The prefix therefore first moves every equipped worn item into the worn row of the new height (`WornItems.MoveIntoWornRow`), trading places with an unequipped item if one sits there. The same step moves gear on spawn, which covers saves made before a row was bought. While the check runs, the worn row is still found by the real grid height.
 
 Two counts assume every item is in the grid, so they are patched to count only items inside it: `Inventory.GetEmptySlots` and `Inventory.HaveEmptySlot`. Without this, worn gear would use up space it no longer occupies.
 
@@ -39,15 +41,15 @@ Two counts assume every item is in the grid, so they are patched to count only i
 
 ## 4. Death and graves
 
-`CreateTombStone` unequips gear, so worn items go back to the grid where there is room. A full inventory can leave up to 6 in the worn row. `MoveInventoryToGrave` copies positions, so those reach the grave at row 4.
+`CreateTombStone` unequips gear, so worn items go back to the grid where there is room. A full inventory can leave up to 6 in the worn row. `MoveInventoryToGrave` copies positions, so those reach the grave in the worn row.
 
-A grave would hide them, so graves are given a fifth row, in `Container.Awake` for a reloaded grave and after `MoveInventoryToGrave` for a new one. `TakeAll` needs nothing new: `MoveAll` retries an item that fails at its old position with `AddItem(item)`, and `EasyFitInInventory` reads the patched `GetEmptySlots`.
+A grave would hide them, so a new grave grows to show its last occupied row after `MoveInventoryToGrave`. A reloaded grave is sized the same way: `Container.Load` ends with `Container.UpdateRows`, which sets the height from the items' rows, and the `Container.Awake` call does the same for any items already there. `TakeAll` needs nothing new: `MoveAll` retries an item that fails at its old position with `AddItem(item)`, and `EasyFitInInventory` reads the patched `GetEmptySlots`.
 
 ## 5. Known limits
 
 - **Removing the mod:** worn items stay worn and saved, because the game keeps them on load, but vanilla draws no slot for them and they can't be taken off. Take gear off before uninstalling. Reinstalling the mod also brings them back.
 - **Hotbar:** armor or a utility item on the hotbar leaves it when equipped, and its key no longer toggles it.
-- **Extra inventory rows:** the game has an `invrows` value a trader purchase can raise. With five or more rows the worn row would overlap the grid. Nothing handles that yet.
+- **Extra inventory rows:** handled since 0.5.3, as above. Lowering the rows with a console command can leave worn gear past the new worn row, where the position check drops it next to the player.
 - **Gamepad:** a gamepad can equip from the grid, but taking gear off and turning the view need a pointer.
 - **Other inventory mods:** a mod that resizes or rearranges the player inventory may conflict.
 
@@ -60,6 +62,7 @@ A grave would hide them, so graves are given a fifth row, in `Container.Awake` f
 - C-5. The stripped character copy shows gear, plays its idle pose and leaves nothing behind in the world: no sounds, no second player on the map, no error spam in the log.
 - C-6. The 3D view stays lit at night and in a cave, with its backdrop showing and no white wash.
 - C-7. Opening the inventory doesn't noticeably drop the frame rate.
+- C-8. Buying a row from the trader moves worn gear into the new worn row: the grid gains an empty row and nothing is dropped. Reloading keeps it there.
 
 Playtest, on a copy of a test character and world. Agents do not launch the game or read saves.
 
@@ -80,3 +83,4 @@ Playtest, on a copy of a test character and world. Agents do not launch the game
 15. Check the BepInEx log and frame rate after a few minutes. (C-5, C-7)
 16. Empty each slot. Expected: a dark outline of that kind of item, and the slot's name in its tooltip. Pick up a chest piece. Expected: the Chest slot lights up within a moment, and goes dark when you put the piece down.
 17. Compare the panel with the inventory above it. Expected: the same wood, matching widths, and buttons under the view rather than over it.
+18. On a copy of a character, wear all six worn items with a full grid, then buy an inventory row from Haldor. Expected: the new bottom row is empty, all six are still worn and shown in the character panel, nothing lies on the ground, and auto-pickup fills the new row. Save, quit, reload: the same. Die: the grave shows every item, including worn ones. (C-8)

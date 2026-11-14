@@ -54,6 +54,9 @@ internal static class BasesWindow
     private static RectTransform? root;
     private static RectTransform? content;
     private static TMP_Text? status;
+
+    /// <summary>The last move result. The inventory covers the game's top-left messages, so the window shows it until the next From or To.</summary>
+    private static string? result;
     private static List<BaseEntry> entries = new List<BaseEntry>();
     private static ContainerId source;
     private static bool loading;
@@ -62,6 +65,17 @@ internal static class BasesWindow
 
     /// <summary>Gets a value indicating whether the window is open.</summary>
     internal static bool IsOpen => root != null && root.gameObject.activeSelf;
+
+    /// <summary>Shows a move's result in the window's status line, where the player can see it.</summary>
+    /// <param name="text">The result line.</param>
+    internal static void ShowResult(string text)
+    {
+        result = text;
+        if (IsOpen)
+        {
+            Show();
+        }
+    }
 
     /// <summary>Opens the window and asks for the list.</summary>
     internal static void Open()
@@ -223,13 +237,13 @@ internal static class BasesWindow
         BaseEntry? from = entries.Find(e => e.Station == source);
         if (status != null)
         {
-            status.text = loading
+            status.text = result ?? (loading
                 ? StringTable.English.Get(StringKeys.BasesLoading)
                 : entries.Count == 0
                     ? StringTable.English.Get(StringKeys.BasesNone)
                     : from == null
                         ? StringTable.English.Get(StringKeys.BasesPickSource)
-                        : StringTable.English.Format(StringKeys.BasesMovingFrom, Plain(from.DisplayName));
+                        : StringTable.English.Format(StringKeys.BasesMovingFrom, Plain(from.DisplayName)));
         }
 
         content.sizeDelta = new Vector2(content.sizeDelta.x, Mathf.Max(Height, entries.Count * RowHeight));
@@ -356,6 +370,7 @@ internal static class BasesWindow
 
         private void OnTo()
         {
+            result = null;
             BaseEntry? sourceEntry = entries.Find(e => e.Station == source);
             if (entry != null && sourceEntry != null && sourceEntry != entry)
             {

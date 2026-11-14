@@ -25,41 +25,62 @@ public enum WornSlot
     Trinket = 5,
 }
 
-/// <summary>Where worn items are kept: a row just past the 8x4 inventory grid, which the game saves but does not draw.</summary>
+/// <summary>
+/// Where worn items are kept: the row just past the inventory grid, which the game saves but does not draw. The grid is 8x4 until a trader
+/// sells extra rows, so the worn row follows the grid's height rather than sitting at a fixed row.
+/// </summary>
 public static class WornSlots
 {
-    /// <summary>The row worn items sit in.</summary>
-    public const int Row = 4;
+    /// <summary>The worn row of the game's normal 8x4 inventory.</summary>
+    public const int DefaultRow = 4;
 
     /// <summary>The number of worn slots.</summary>
     public const int Count = 6;
 
-    /// <summary>The height a grave needs so a worn item it holds can be seen.</summary>
-    public const int GraveHeight = Row + 1;
+    /// <summary>Gets the worn row of a grid.</summary>
+    /// <param name="gridHeight">The inventory grid's height, without the worn row.</param>
+    /// <returns>The row just past the grid.</returns>
+    public static int RowFor(int gridHeight)
+    {
+        if (gridHeight < 1)
+        {
+            throw new ArgumentOutOfRangeException(nameof(gridHeight));
+        }
+
+        return gridHeight;
+    }
 
     /// <summary>Gets a slot's position.</summary>
     /// <param name="slot">The slot.</param>
+    /// <param name="gridHeight">The inventory grid's height, without the worn row.</param>
     /// <returns>The position.</returns>
-    public static InventorySlot PositionOf(WornSlot slot)
+    public static InventorySlot PositionOf(WornSlot slot, int gridHeight)
     {
         if (!Enum.IsDefined(typeof(WornSlot), slot))
         {
             throw new ArgumentOutOfRangeException(nameof(slot));
         }
 
-        return new InventorySlot((int)slot, Row);
+        return new InventorySlot((int)slot, RowFor(gridHeight));
     }
 
     /// <summary>Tells whether a position is a worn slot.</summary>
     /// <param name="x">The column.</param>
     /// <param name="y">The row.</param>
+    /// <param name="gridHeight">The inventory grid's height, without the worn row.</param>
     /// <returns>True for a worn slot.</returns>
-    public static bool IsWornPosition(int x, int y) => y == Row && x >= 0 && x < Count;
+    public static bool IsWornPosition(int x, int y, int gridHeight) => gridHeight >= 1 && y == RowFor(gridHeight) && x >= 0 && x < Count;
 
     /// <summary>Gets an inventory's height counted with the worn row, for checks that a stack's position is real.</summary>
-    /// <param name="height">The inventory's height.</param>
+    /// <param name="gridHeight">The inventory grid's height.</param>
     /// <returns>The height with the worn row.</returns>
-    public static int HeightWithWornRow(int height) => Math.Max(height, Row + 1);
+    public static int HeightWithWornRow(int gridHeight) => Math.Max(gridHeight, 1) + 1;
+
+    /// <summary>Gets the height a grave needs so every item it holds can be seen.</summary>
+    /// <param name="height">The grave's height.</param>
+    /// <param name="lastRow">The last row any of its items sits in, or -1 when it is empty.</param>
+    /// <returns>The height to give it.</returns>
+    public static int GraveHeight(int height, int lastRow) => Math.Max(height, lastRow + 1);
 
     /// <summary>Works out the free grid spaces when some items sit outside the grid.</summary>
     /// <param name="width">The grid's width.</param>
@@ -73,10 +94,11 @@ public static class WornSlots
     /// <summary>Works out where things go when an item is put on.</summary>
     /// <param name="item">The item's position.</param>
     /// <param name="slot">The slot it goes to.</param>
+    /// <param name="gridHeight">The inventory grid's height, without the worn row.</param>
     /// <param name="occupied">Whether another item is in that slot.</param>
     /// <returns>The moves.</returns>
-    public static WornSwap PutOn(InventorySlot item, WornSlot slot, bool occupied) =>
-        new WornSwap(PositionOf(slot), occupied ? item : (InventorySlot?)null);
+    public static WornSwap PutOn(InventorySlot item, WornSlot slot, int gridHeight, bool occupied) =>
+        new WornSwap(PositionOf(slot, gridHeight), occupied ? item : (InventorySlot?)null);
 }
 
 /// <summary>Where an item goes when put on, and where the item it replaces goes.</summary>

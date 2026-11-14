@@ -154,6 +154,7 @@ public sealed class PluginCategoryFileSourceScanTests
             "src/BaseStorage.Plugin/CharacterMenu/HumanoidDropInvalidItemsPatch.cs",
             "src/BaseStorage.Plugin/CharacterMenu/HumanoidEquipItemPatch.cs",
             "src/BaseStorage.Plugin/CharacterMenu/HumanoidUnequipItemPatch.cs",
+            "src/BaseStorage.Plugin/CharacterMenu/InventoryCanAddItemPatch.cs",
             "src/BaseStorage.Plugin/CharacterMenu/InventoryGetEmptySlotsPatch.cs",
             "src/BaseStorage.Plugin/CharacterMenu/InventoryHaveEmptySlotPatch.cs",
             "src/BaseStorage.Plugin/CharacterMenu/InventoryMoveInventoryToGravePatch.cs",

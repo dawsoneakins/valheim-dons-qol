@@ -52,4 +52,40 @@ internal abstract class FeedTarget
     internal virtual void InputsAdded()
     {
     }
+
+    /// <summary>Gets a value indicating whether the station cooks food that can be collected.</summary>
+    internal virtual bool CanCollect => false;
+
+    /// <summary>Finds a slot holding cooked food. Burnt food is never found, so it stays for the player to see.</summary>
+    /// <param name="slot">The slot.</param>
+    /// <param name="prefabName">The cooked item's prefab name.</param>
+    /// <param name="cheated">The item's cheated mark.</param>
+    /// <returns>True when a slot holds cooked food.</returns>
+    internal virtual bool TryFindCooked(out int slot, out string prefabName, out bool cheated)
+    {
+        slot = -1;
+        prefabName = string.Empty;
+        cheated = false;
+        return false;
+    }
+
+    /// <summary>Tells whether a slot still holds a cooked item.</summary>
+    /// <param name="slot">The slot.</param>
+    /// <param name="prefabName">The item's prefab name.</param>
+    /// <returns>True when it does.</returns>
+    internal virtual bool HoldsCooked(int slot, string prefabName) => false;
+
+    /// <summary>Empties a slot. The caller has checked it holds cooked food and owns the station.</summary>
+    /// <param name="slot">The slot.</param>
+    internal virtual void ClearSlot(int slot)
+    {
+    }
+
+    /// <summary>Drops an item beside the station, the way the game does when a player takes it.</summary>
+    /// <param name="slot">The slot it came from.</param>
+    /// <param name="prefabName">The item's prefab name.</param>
+    /// <param name="cheated">The item's cheated mark.</param>
+    internal virtual void Drop(int slot, string prefabName, bool cheated)
+    {
+    }
 }

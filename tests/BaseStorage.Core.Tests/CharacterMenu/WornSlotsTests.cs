@@ -7,15 +7,18 @@ using BaseStorage.Core.Persistence;
 /// <summary>Where worn items live, how free space is counted, and what the hand slots show.</summary>
 public sealed class WornSlotsTests
 {
-    [Fact]
-    public void EverySlotHasItsOwnPositionPastTheGrid()
+    [Theory]
+    [InlineData(4)]
+    [InlineData(5)]
+    [InlineData(9)]
+    public void EverySlotHasItsOwnPositionJustPastTheGrid(int gridHeight)
     {
         var seen = new System.Collections.Generic.HashSet<InventorySlot>();
         foreach (WornSlot slot in Enum.GetValues(typeof(WornSlot)))
         {
-            InventorySlot position = WornSlots.PositionOf(slot);
-            Assert.Equal(WornSlots.Row, position.Y);
-            Assert.True(WornSlots.IsWornPosition(position.X, position.Y));
+            InventorySlot position = WornSlots.PositionOf(slot, gridHeight);
+            Assert.Equal(gridHeight, position.Y);
+            Assert.True(WornSlots.IsWornPosition(position.X, position.Y, gridHeight));
             Assert.True(seen.Add(position));
         }
 
@@ -23,25 +26,49 @@ public sealed class WornSlotsTests
     }
 
     [Fact]
-    public void TheRowIsJustPastTheGameInventory() => Assert.Equal(4, WornSlots.Row);
+    public void TheNormalInventoryKeepsTheRowItAlwaysHad() =>
+        Assert.Equal(WornSlots.DefaultRow, WornSlots.RowFor(4));
+
+    [Fact]
+    public void ABoughtRowMovesTheWornRowDownSoItNeverOverlapsTheGrid()
+    {
+        Assert.Equal(5, WornSlots.RowFor(5));
+        Assert.False(WornSlots.IsWornPosition(0, 4, 5));
+        Assert.True(WornSlots.IsWornPosition(0, 5, 5));
+    }
 
     [Theory]
-    [InlineData(0, 3)]
-    [InlineData(6, 4)]
-    [InlineData(-1, 4)]
-    [InlineData(0, 5)]
-    public void OtherPositionsAreNotWorn(int x, int y) => Assert.False(WornSlots.IsWornPosition(x, y));
+    [InlineData(0, 3, 4)]
+    [InlineData(6, 4, 4)]
+    [InlineData(-1, 4, 4)]
+    [InlineData(0, 5, 4)]
+    [InlineData(0, 4, 5)]
+    [InlineData(0, 0, 0)]
+    public void OtherPositionsAreNotWorn(int x, int y, int gridHeight) => Assert.False(WornSlots.IsWornPosition(x, y, gridHeight));
 
     [Fact]
     public void AnUndefinedSlotIsRefused() =>
-        Assert.Throws<ArgumentOutOfRangeException>(() => WornSlots.PositionOf((WornSlot)99));
+        Assert.Throws<ArgumentOutOfRangeException>(() => WornSlots.PositionOf((WornSlot)99, 4));
+
+    [Fact]
+    public void AGridWithNoRowsIsRefused() =>
+        Assert.Throws<ArgumentOutOfRangeException>(() => WornSlots.RowFor(0));
 
     [Theory]
     [InlineData(4, 5)]
-    [InlineData(5, 5)]
-    [InlineData(6, 6)]
+    [InlineData(5, 6)]
+    [InlineData(9, 10)]
     public void TheHeightCheckAllowsTheWornRow(int height, int expected) =>
         Assert.Equal(expected, WornSlots.HeightWithWornRow(height));
+
+    [Theory]
+    [InlineData(4, -1, 4)]
+    [InlineData(4, 3, 4)]
+    [InlineData(4, 4, 5)]
+    [InlineData(5, 5, 6)]
+    [InlineData(6, 4, 6)]
+    public void AGraveGrowsToShowItsLastRow(int height, int lastRow, int expected) =>
+        Assert.Equal(expected, WornSlots.GraveHeight(height, lastRow));
 
     [Theory]
     [InlineData(0, 0, 32)]
@@ -58,9 +85,9 @@ public sealed class WornSlotsTests
     [Fact]
     public void PuttingOnIntoAnEmptySlotMovesOnlyTheItem()
     {
-        WornSwap swap = WornSlots.PutOn(new InventorySlot(3, 2), WornSlot.Chest, occupied: false);
+        WornSwap swap = WornSlots.PutOn(new InventorySlot(3, 2), WornSlot.Chest, 5, occupied: false);
 
-        Assert.Equal(WornSlots.PositionOf(WornSlot.Chest), swap.Item);
+        Assert.Equal(WornSlots.PositionOf(WornSlot.Chest, 5), swap.Item);
         Assert.Null(swap.Occupant);
     }
 
@@ -69,9 +96,9 @@ public sealed class WornSlotsTests
     {
         var from = new InventorySlot(3, 2);
 
-        WornSwap swap = WornSlots.PutOn(from, WornSlot.Helmet, occupied: true);
+        WornSwap swap = WornSlots.PutOn(from, WornSlot.Helmet, 4, occupied: true);
 
-        Assert.Equal(WornSlots.PositionOf(WornSlot.Helmet), swap.Item);
+        Assert.Equal(WornSlots.PositionOf(WornSlot.Helmet, 4), swap.Item);
         Assert.Equal(from, swap.Occupant);
     }
 

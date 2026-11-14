@@ -90,6 +90,7 @@ public sealed class PatchTargetNamesFavouritesTests
                 new HarmonyEntry("HumanoidEquipItem", "Humanoid.EquipItem(ItemDrop+ItemData,System.Boolean)"),
                 new HarmonyEntry("HumanoidIsItemEquiped", "Humanoid.IsItemEquiped(ItemDrop+ItemData)"),
                 new HarmonyEntry("HumanoidUnequipItem", "Humanoid.UnequipItem(ItemDrop+ItemData,System.Boolean)"),
+                new HarmonyEntry("InventoryCanAddItem", "Inventory.CanAddItem(ItemDrop+ItemData,System.Int32)"),
                 new HarmonyEntry("InventoryGetEmptySlots", "Inventory.GetEmptySlots()"),
                 new HarmonyEntry("InventoryGridOnLeftDown", "InventoryGrid.OnLeftDown(UIInputHandler)"),
                 new HarmonyEntry("InventoryGridOnRightDown", "InventoryGrid.OnRightDown(UIInputHandler)"),

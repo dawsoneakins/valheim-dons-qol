@@ -6,6 +6,7 @@ using BaseStorage.Core.Abstractions;
 using BaseStorage.Core.Bases;
 using BaseStorage.Core.BaseMove;
 using BaseStorage.Core.ChestNames;
+using BaseStorage.Core.Logging;
 using BaseStorage.Core.Persistence;
 using BaseStorage.Core.Settings;
 using BaseStorage.Core.Snapshots;
@@ -135,9 +136,15 @@ internal static class PluginBaseMove
 
     private static double Now() => clock == null ? 0d : clock.Elapsed.TotalSeconds;
 
+    /// <summary>
+    /// Shows a move's result. The game's top-left line sits under the open inventory, so the Base management window shows it too, and the log keeps
+    /// one line per result, so a move that seems to do nothing can still be traced.
+    /// </summary>
     private static void Show(string text)
     {
         Notices.Show(NoticePlacement.TopLeft, StringKeys.MoveLine, text);
+        BasesWindow.ShowResult(text);
+        LogPolicy.Write(log, LogCategory.OrganizeSummary, "Base move: " + text);
     }
 
     /// <summary>Keeps the bases window current after a move finishes.</summary>

@@ -79,3 +79,31 @@ Playtest. Agents do not launch the game or read saves.
 12. Leave to the main menu, join another world and open it. Expected: it works, with the same character's knowledge.
 13. With another item mod installed, find one of its items in play. Expected: it gets a page.
 14. Check the BepInEx log and frame rate after a few minutes. Expected: no errors from the mod and no stutter once a second. (D-3)
+
+## 7. Journey, silhouettes and hints (0.5.3)
+
+Built from the design canvas "Don's QOL Compendium Designs". Core: `CompendiumJournal`, `CompendiumFrontier`, `CompendiumJourney`. Plugin: `CompendiumJournalStore`, `CompendiumTracker`, and the window's new tabs.
+
+- **Tabs:** Home, Items, Creatures, Biomes, Building, Not yet found, Options, Back. The window opens on Home.
+- **Home:** found counts for each visited land; recently discovered pages (new until opened); what the base the player stands in can make; three hints from Not yet found.
+- **Item pages** gain "In this base": the count in the base's chests and carried, a link that highlights the chests holding it (the inventory closes so the glow shows), and how many can be made from carried plus base stock.
+- **Creature pages** gain "Your best answer": the found weapons ranked by damage against it, by the game's damage multipliers. Chop and pickaxe damage are ignored. Creatures now show their trophy's icon.
+- **Not yet found:** for each visited land, the creatures that spawn there (not bosses), the items gathered there and their creatures' drops that the player hasn't found. Each shows its icon in black with an outline, and up to three hints:
+  1. Free: land and time of day, or who drops it.
+  2. Size, health and drops, or where it's gathered. It opens per the player's rule: when half the land is found (default), right away, or never.
+  3. The name, after two clicks.
+  Hints come only from game data, so other mods' content gets them too. Look ahead adds the next land's silhouettes without hints.
+- **Tracking:** a tracked hint shows below the minimap. It is marked when the player is in its land at the right time of day, with one notice on arrival. Finding it shows "Found: name" and stops tracking.
+- **Options:** spoiler level (Hidden, Hints, Look ahead), second-hint rule, found counts, on-screen list, arrival notice. Saved per character in `basestorage.journal`, never host-synced.
+- **Choices against section 2:** silhouettes deliberately show that undiscovered things exist, only in visited lands, and Hidden turns them off. The first open marks everything already known as read, so only later finds count as new.
+- **Not built from the design:** pinned recipes and shopping list, search filter chips, sighting counts and first-seen day, the reveal animation, and HUD position choice.
+
+Playtest (J-1 to J-6):
+
+15. Open the compendium. Expected: Home, with counts per visited land and no names of unvisited lands. (J-1)
+16. Pick up something new, reopen. Expected: it's under Recently discovered until you open its page.
+17. Open Not yet found and pick an entry. Expected: a black icon with a blue outline, hint 1, and Reveal. Click Reveal twice. Expected: the name, and the icon in colour. (J-2)
+18. Track a hint, close the inventory. Expected: it's listed below the minimap; in the right land at the right time it's marked and a notice shows once. Find it. Expected: "Found: ..." and it leaves the list. (J-3)
+19. In a base, open an item you store. Expected: base and carried counts; Show the chests closes the inventory and the chests glow. (J-4)
+20. Open a creature with a weakness. Expected: Your best answer lists your weapons best first. (J-5)
+21. Options: set Hidden. Expected: Not yet found is empty and Home has no Within reach. Reload the character. Expected: the choice is kept. (J-6)

@@ -151,7 +151,8 @@ public sealed class PluginFavouritesSourceScanTests
     [Fact]
     public void TheCustomDataFieldIsReadOnlyInTheSessionFileOnly()
     {
-        Assert.Equal(new[] { "src/BaseStorage.Plugin/Compendium/CompendiumSightingTracker.cs", SessionFile, RestockIdentityFile }, PluginSourceScan.FilesMatching(ScanWithFavourites(), "m_customData")); // Edited by S-QR-002 (ADR-GWIN-174)
+        // Edited for the compendium journey: the journal store saves the player's compendium state on the character too.
+        Assert.Equal(new[] { "src/BaseStorage.Plugin/Compendium/CompendiumJournalStore.cs", "src/BaseStorage.Plugin/Compendium/CompendiumSightingTracker.cs", SessionFile, RestockIdentityFile }, PluginSourceScan.FilesMatching(ScanWithFavourites(), "m_customData")); // Edited by S-QR-002 (ADR-GWIN-174)
     }
 
     // GW-U-710
@@ -261,6 +262,7 @@ public sealed class PluginFavouritesSourceScanTests
                 "src/BaseStorage.Plugin/CharacterMenu/HumanoidDropInvalidItemsPatch.cs",
                 "src/BaseStorage.Plugin/CharacterMenu/HumanoidEquipItemPatch.cs",
                 "src/BaseStorage.Plugin/CharacterMenu/HumanoidUnequipItemPatch.cs",
+                "src/BaseStorage.Plugin/CharacterMenu/InventoryCanAddItemPatch.cs",
                 "src/BaseStorage.Plugin/CharacterMenu/InventoryGetEmptySlotsPatch.cs",
                 "src/BaseStorage.Plugin/CharacterMenu/InventoryHaveEmptySlotPatch.cs",
                 "src/BaseStorage.Plugin/CharacterMenu/InventoryMoveInventoryToGravePatch.cs",

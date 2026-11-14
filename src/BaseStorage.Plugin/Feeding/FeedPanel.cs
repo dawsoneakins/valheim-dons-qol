@@ -3,6 +3,7 @@ namespace BaseStorage.Plugin.Feeding;
 using System;
 using System.Collections.Generic;
 using BaseStorage.Core.Abstractions;
+using BaseStorage.Core.CookedFood;
 using BaseStorage.Core.Feeding;
 using BaseStorage.Core.Snapshots;
 using BaseStorage.Core.Ui;
@@ -25,6 +26,8 @@ internal static class FeedPanel
     private const string TitleId = "feed.title";
     private const string StatusId = "feed.status";
     private const string CloseId = "feed.close";
+    private const string CollectId = "feed.collect";
+    private const float CollectWidth = 250f;
     private const string HeaderItemId = "feed.header.item";
     private const string HeaderFedId = "feed.header.fed";
     private const string HeaderKeepId = "feed.header.keep";
@@ -59,6 +62,9 @@ internal static class FeedPanel
     private static GameObject? panel;
     private static TMP_Text? title;
     private static TMP_Text? status;
+    private static Button? collectButton;
+    private static TMP_Text? collectLabel;
+    private static CollectMode collect = CollectMode.Off;
     private static FeedTarget? station;
     private static FeedSelection selection = FeedSelection.Empty;
     private static TimeSpan lastLoad = TimeSpan.Zero;
@@ -165,6 +171,8 @@ internal static class FeedPanel
         {
             builtFor = gui;
             panel = null;
+            collectButton = null;
+            collectLabel = null;
             RowViews.Clear();
         }
 
@@ -186,6 +194,7 @@ internal static class FeedPanel
             if (now - lastEdit >= EchoDelay)
             {
                 selection = StationFeeder.Read(station);
+                collect = StationFeeder.ReadCollect(station);
             }
 
             Show();
@@ -229,6 +238,7 @@ internal static class FeedPanel
         BaseMenuPanel.Hide();
         station = target;
         selection = StationFeeder.Read(target);
+        collect = StationFeeder.ReadCollect(target);
         if (!ReferenceEquals(builtFor, gui) || panel == null)
         {
             builtFor = gui;
@@ -274,7 +284,7 @@ internal static class FeedPanel
 
         Transform parent = panel.transform;
         title = Label(gui.m_craftingStationName, parent, TitleId, Margin, -Margin, 380f, 30f, 22f);
-        status = Label(gui.m_recipeDecription, parent, StatusId, Margin, -46f, 380f, 26f, 17f);
+        status = Label(gui.m_recipeDecription, parent, StatusId, Margin, -46f, BaseMenuPanel.MaxWidth - (Margin * 3f) - CollectWidth, 26f, 17f);
         SetText(Label(gui.m_recipeDecription, parent, HeaderItemId, Margin, -82f, 300f, 24f, 15f), StringTable.English.Get(StringKeys.FeedHeaderItem));
         SetText(Label(gui.m_recipeDecription, parent, HeaderFedId, RowView.ToggleX, -82f, RowView.ToggleWidth, 24f, 15f), StringTable.English.Get(StringKeys.FeedHeaderFed));
         SetText(Label(gui.m_recipeDecription, parent, HeaderKeepId, RowView.LessX, -82f, 150f, 24f, 15f), StringTable.English.Get(StringKeys.FeedHeaderKeep));
@@ -282,6 +292,13 @@ internal static class FeedPanel
         if (close != null)
         {
             Pin(close, 130f, 40f, BaseMenuPanel.MaxWidth - Margin - 130f - 12f, -Margin);
+        }
+
+        collectButton = VanillaButtonFactory.Create(gui.m_stackAllButton, parent, CollectId, StringKeys.FeedCollectOff, () => PatchSafety.Run(ClickKey, CycleCollect));
+        if (collectButton != null)
+        {
+            Pin(collectButton, CollectWidth, 32f, BaseMenuPanel.MaxWidth - Margin - CollectWidth - 12f, -44f);
+            collectLabel = collectButton.GetComponentInChildren<TMP_Text>();
         }
 
         for (int i = 0; i < MaxRows; i++)
@@ -304,6 +321,17 @@ internal static class FeedPanel
             : state.FuelPrefab == null
             ? StringTable.English.Format(StringKeys.FeedStatusNoFuel, state.Queued, state.MaxQueued)
             : StringTable.English.Format(StringKeys.FeedStatus, state.Queued, state.MaxQueued, Mathf.CeilToInt(state.Fuel), Mathf.FloorToInt(state.MaxFuel)));
+        if (collectButton != null)
+        {
+            collectButton.gameObject.SetActive(target.CanCollect);
+            SetText(collectLabel, StringTable.English.Get(collect switch
+            {
+                CollectMode.ToChests => StringKeys.FeedCollectChests,
+                CollectMode.Drop => StringKeys.FeedCollectDrop,
+                _ => StringKeys.FeedCollectOff,
+            }));
+        }
+
         bool inBase = StationFeeder.LoadChests(target.Station.transform.position, Chests);
         for (int i = 0; i < RowViews.Count; i++)
         {
@@ -327,6 +355,20 @@ internal static class FeedPanel
             gui.Hide();
         }
     });
+
+    private static void CycleCollect()
+    {
+        FeedTarget? target = station;
+        if (target == null || clock == null || !target.CanCollect)
+        {
+            return;
+        }
+
+        collect = CollectSetting.Next(collect);
+        lastEdit = clock.Elapsed;
+        StationFeeder.WriteCollect(target, collect);
+        Show();
+    }
 
     private static void Toggle(int index)
     {

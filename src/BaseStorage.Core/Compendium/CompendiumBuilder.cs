@@ -234,7 +234,7 @@ public static class CompendiumBuilder
             .Select(g => new CompendiumLine(Text(StringKeys.CompendiumResponse, BiomeName(g.Key), TimeName(g.Any(s => s.Day), g.Any(s => s.Night))), BiomePage(g.Key)))
             .ToList();
 
-    private static string TimeName(bool day, bool night)
+    internal static string TimeName(bool day, bool night)
     {
         if (day && night)
         {
@@ -287,11 +287,11 @@ public static class CompendiumBuilder
         }
     }
 
-    private static string Text(string key, params object?[] args) => StringTable.English.Format(key, args);
+    internal static string Text(string key, params object?[] args) => StringTable.English.Format(key, args);
 
-    private static string Number(float value) => value.ToString("0.##", CultureInfo.InvariantCulture);
+    internal static string Number(float value) => value.ToString("0.##", CultureInfo.InvariantCulture);
 
-    private static string Number(int value) => value.ToString(CultureInfo.InvariantCulture);
+    internal static string Number(int value) => value.ToString(CultureInfo.InvariantCulture);
 
     private static bool IsPrefabWord(string word) =>
         word.Equals("Pickable", StringComparison.OrdinalIgnoreCase)
@@ -314,7 +314,7 @@ public static class CompendiumBuilder
         return text.ToString();
     }
 
-    private static string CategoryName(ItemCategory category)
+    internal static string CategoryName(ItemCategory category)
     {
         switch (category)
         {
@@ -341,7 +341,7 @@ public static class CompendiumBuilder
         }
     }
 
-    private static string DamageName(CompendiumDamage type)
+    internal static string DamageName(CompendiumDamage type)
     {
         switch (type)
         {

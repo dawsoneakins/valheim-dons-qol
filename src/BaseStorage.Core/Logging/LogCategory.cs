@@ -9,7 +9,7 @@ public enum LogCategory
     /// <summary>Messages about syncing host-synced settings. Written at Info.</summary>
     ConfigSync = 1,
 
-    /// <summary>The one summary line per Organize operation. Written at Info.</summary>
+    /// <summary>The one summary line per Organize operation, and the one result line per base move. Written at Info.</summary>
     OrganizeSummary = 2,
 
     /// <summary>The one summary line per Deposit operation. Written at Info.</summary>

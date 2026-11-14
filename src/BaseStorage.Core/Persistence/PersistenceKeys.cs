@@ -30,8 +30,14 @@ public static class PersistenceKeys
     /// <summary>The creatures and biomes the player has met, stored on the character for the spoiler-free compendium.</summary>
     public const string CompendiumSightings = "basestorage.seen";
 
+    /// <summary>The key on a cooking station that holds what it does with cooked food.</summary>
+    public const string StationCollect = "basestorage.collect";
+
+    /// <summary>The player's own compendium state, stored on the character: hint progress, tracked hints, pages read and spoiler settings.</summary>
+    public const string CompendiumJournal = "basestorage.journal";
+
     private static readonly ReadOnlyCollection<string> AllKeys =
-        new ReadOnlyCollection<string>(new[] { ChestCategory, OrganizeLock, Favourites, StationFeed, ChestName, FavouriteItems, BaseName, CompendiumSightings });
+        new ReadOnlyCollection<string>(new[] { ChestCategory, OrganizeLock, Favourites, StationFeed, ChestName, FavouriteItems, BaseName, CompendiumSightings, StationCollect, CompendiumJournal });
 
     /// <summary>Gets every persistent key, in the order chest category, organize lock, favourites.</summary>
     public static IReadOnlyList<string> All => AllKeys;

@@ -24,7 +24,7 @@ using UnityEngine;
 /// releases the chest. Items leave the chest before they enter the station, and a station that was lost in between gets nothing taken.
 /// Main thread only.
 /// </summary>
-internal static class StationFeeder
+internal static partial class StationFeeder
 {
     private const string Operation = "feed";
     private const string SetSelectionRpc = "BaseStorage_SetFeed";
@@ -73,6 +73,11 @@ internal static class StationFeeder
                 view.GetZDO().Set(PersistenceKeys.StationFeed, value);
             }
         });
+
+        if (station.CanCollect)
+        {
+            RegisterCollect(view);
+        }
     }
 
     /// <summary>Reads a station's selection.</summary>
@@ -185,6 +190,12 @@ internal static class StationFeeder
             return;
         }
 
+        if (collectJob != null)
+        {
+            AdvanceCollect(collectJob);
+            return;
+        }
+
         TimeSpan now = clock.Elapsed;
         if (now < nextPass || Player.m_localPlayer == null)
         {
@@ -198,7 +209,7 @@ internal static class StationFeeder
         for (int i = 0; i < Stations.Count; i++)
         {
             FeedTarget station = Stations[(cursor + i) % Stations.Count];
-            if (TryStart(station))
+            if (TryCollect(station) || TryStart(station))
             {
                 cursor = (cursor + i + 1) % Stations.Count;
                 nextPass = now + NextOrderDelay;

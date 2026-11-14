@@ -15,7 +15,9 @@ BaseStorage persists a small amount of data inside vanilla game data:
 - `basestorage.name`: a chest's name, stored on the chest and cleaned on every read.
 - `basestorage.base`: a base's name, stored on every station of the base and cleaned on every read.
 - `basestorage.seen`: the creatures and biomes a player has met, stored in the character's custom data for the spoiler-free compendium.
+- `basestorage.journal`: the player's own compendium state in the character's custom data: hints shown, names revealed, hints tracked on screen, pages already read, and the spoiler settings. Damaged entries are skipped.
 - `basestorage.feed`: what a station is kept fed with and how much to leave in the base, in the station's ZDO.
+- `basestorage.collect`: what a cooking station does with cooked food (`off`, `chests` or `drop`), in the station's ZDO. Unset means to chests while the station is kept fed, and off otherwise.
 
 Players must be able to remove the mod without damaging their world or characters.
 

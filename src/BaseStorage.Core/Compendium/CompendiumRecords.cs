@@ -16,6 +16,15 @@ public enum CompendiumKind
 
     /// <summary>A building piece.</summary>
     Piece = 3,
+
+    /// <summary>An overview page: the home page and the list of what's not yet found.</summary>
+    Home = 4,
+
+    /// <summary>Something not yet found, shown as a silhouette with hints.</summary>
+    Frontier = 5,
+
+    /// <summary>The hint and spoiler settings.</summary>
+    Settings = 6,
 }
 
 /// <summary>The world's biomes, in the order a player meets them.</summary>

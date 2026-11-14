@@ -12,6 +12,12 @@ internal static class WornItems
     /// <summary>The state of a position check that didn't change the inventory's height.</summary>
     internal const int NotWidened = -1;
 
+    /// <summary>The inventory a position check has widened, so the worn row is still found by its real grid height meanwhile.</summary>
+    private static Inventory? widened;
+
+    /// <summary>The real grid height of <see cref="widened"/>.</summary>
+    private static int widenedFrom = NotWidened;
+
     /// <summary>Finds the worn slot an item belongs in.</summary>
     /// <param name="item">The item.</param>
     /// <returns>The slot, or null when the item isn't worn gear.</returns>
@@ -47,8 +53,9 @@ internal static class WornItems
     /// <returns>The item, or null.</returns>
     internal static ItemDrop.ItemData? InSlot(Player player, WornSlot slot)
     {
-        InventorySlot position = WornSlots.PositionOf(slot);
-        return player.GetInventory().GetItemAt(position.X, position.Y);
+        Inventory inventory = player.GetInventory();
+        InventorySlot position = WornSlots.PositionOf(slot, GridHeight(inventory));
+        return inventory.GetItemAt(position.X, position.Y);
     }
 
     /// <summary>After the game equips an item, moves it into its slot.</summary>
@@ -64,14 +71,15 @@ internal static class WornItems
         }
 
         Inventory inventory = player.GetInventory();
-        InventorySlot position = WornSlots.PositionOf(slot.Value);
+        int gridHeight = GridHeight(inventory);
+        InventorySlot position = WornSlots.PositionOf(slot.Value, gridHeight);
         if (!inventory.ContainsItem(item) || (item.m_gridPos.x == position.X && item.m_gridPos.y == position.Y))
         {
             return item;
         }
 
         ItemDrop.ItemData? occupant = inventory.GetItemAt(position.X, position.Y);
-        WornSwap swap = WornSlots.PutOn(new InventorySlot(item.m_gridPos.x, item.m_gridPos.y), slot.Value, occupant != null);
+        WornSwap swap = WornSlots.PutOn(new InventorySlot(item.m_gridPos.x, item.m_gridPos.y), slot.Value, gridHeight, occupant != null);
         item.m_gridPos = new Vector2i(swap.Item.X, swap.Item.Y);
         if (occupant != null && swap.Occupant.HasValue)
         {
@@ -110,7 +118,7 @@ internal static class WornItems
             ReturnToGrid(player.GetInventory(), item);
         }
 
-        if (WornSlots.IsWornPosition(item.m_gridPos.x, item.m_gridPos.y))
+        if (IsWorn(player.GetInventory(), item))
         {
             Notices.Show(NoticePlacement.TopLeft, StringKeys.MessageWornNoRoom);
         }
@@ -150,6 +158,75 @@ internal static class WornItems
         return WornSlots.EmptySlots(inventory.GetWidth(), inventory.GetHeight(), items.Count, outside);
     }
 
+    /// <summary>Answers Inventory.CanAddItem the way vanilla does, but counting only free grid spaces.</summary>
+    /// <param name="inventory">The inventory.</param>
+    /// <param name="item">The item to add.</param>
+    /// <param name="stack">How many; zero or less means the item's whole stack, as in vanilla.</param>
+    /// <returns>True when the stack fits.</returns>
+    internal static bool CanAddItem(Inventory inventory, ItemDrop.ItemData? item, int stack)
+    {
+        if (inventory == null || item?.m_shared == null)
+        {
+            return false;
+        }
+
+        int wanted = stack > 0 ? stack : item.m_stack;
+        long room = inventory.FindFreeStackSpace(item.m_shared.m_name, item.m_worldLevel)
+            + ((long)EmptySlots(inventory) * item.m_shared.m_maxStackSize);
+        return room >= wanted;
+    }
+
+    /// <summary>
+    /// Moves worn gear into the worn row of the grid's current height. A trader's extra row makes the old worn row part of the grid, and the
+    /// game runs its position check straight after, so this runs first. Saves from before a bought row are moved the same way on spawn.
+    /// </summary>
+    /// <param name="player">The player.</param>
+    /// <returns>How many items moved.</returns>
+    internal static int MoveIntoWornRow(Player player)
+    {
+        Inventory inventory = player.GetInventory();
+        int gridHeight = GridHeight(inventory);
+        int moved = 0;
+        List<ItemDrop.ItemData> items = inventory.GetAllItems();
+        for (int i = 0; i < items.Count; i++)
+        {
+            ItemDrop.ItemData item = items[i];
+            WornSlot? slot = SlotOf(item);
+            if (!item.m_equipped || !slot.HasValue)
+            {
+                continue;
+            }
+
+            InventorySlot position = WornSlots.PositionOf(slot.Value, gridHeight);
+            if (item.m_gridPos.x == position.X && item.m_gridPos.y == position.Y)
+            {
+                continue;
+            }
+
+            // Gear put on before the saved rows came back can swap a grid item into the new worn row; trading places undoes that.
+            ItemDrop.ItemData? occupant = inventory.GetItemAt(position.X, position.Y);
+            if (occupant != null && occupant.m_equipped)
+            {
+                continue;
+            }
+
+            if (occupant != null)
+            {
+                occupant.m_gridPos = item.m_gridPos;
+            }
+
+            item.m_gridPos = new Vector2i(position.X, position.Y);
+            moved++;
+        }
+
+        if (moved > 0)
+        {
+            inventory.Changed(false, false);
+        }
+
+        return moved;
+    }
+
     /// <summary>Counts the worn row as inside a player's inventory, so the game's position check doesn't drop worn gear.</summary>
     /// <param name="who">Who the check runs for.</param>
     /// <returns>The height to restore afterwards, or <see cref="NotWidened"/> when nothing changed.</returns>
@@ -160,8 +237,11 @@ internal static class WornItems
             return NotWidened;
         }
 
+        MoveIntoWornRow(player);
         Inventory inventory = player.GetInventory();
         int height = inventory.m_height;
+        widened = inventory;
+        widenedFrom = height;
         inventory.m_height = WornSlots.HeightWithWornRow(height);
         return height;
     }
@@ -175,19 +255,28 @@ internal static class WornItems
         if (height != NotWidened && who is Player player)
         {
             player.GetInventory().m_height = height;
+            widened = null;
+            widenedFrom = NotWidened;
         }
 
         return height;
     }
 
-    /// <summary>Gives a grave the extra row a worn item needs in order to be seen.</summary>
+    /// <summary>Gives a grave the rows its items need in order to be seen. A worn item sits one row past the dead player's grid.</summary>
     /// <param name="grave">The grave's inventory.</param>
     internal static void WidenGrave(Inventory grave)
     {
-        if (grave.m_height < WornSlots.GraveHeight)
+        int lastRow = -1;
+        List<ItemDrop.ItemData> items = grave.GetAllItems();
+        for (int i = 0; i < items.Count; i++)
         {
-            grave.m_height = WornSlots.GraveHeight;
+            if (items[i].m_gridPos.y > lastRow)
+            {
+                lastRow = items[i].m_gridPos.y;
+            }
         }
+
+        grave.m_height = WornSlots.GraveHeight(grave.m_height, lastRow);
     }
 
     /// <summary>Gives a grave the extra row when its container wakes.</summary>
@@ -200,9 +289,18 @@ internal static class WornItems
         }
     }
 
+    /// <summary>Gets an inventory's real grid height, even while a position check has widened it.</summary>
+    /// <param name="inventory">The inventory.</param>
+    /// <returns>The grid height.</returns>
+    private static int GridHeight(Inventory inventory) =>
+        ReferenceEquals(inventory, widened) && widenedFrom != NotWidened ? widenedFrom : inventory.GetHeight();
+
+    private static bool IsWorn(Inventory inventory, ItemDrop.ItemData item) =>
+        WornSlots.IsWornPosition(item.m_gridPos.x, item.m_gridPos.y, GridHeight(inventory));
+
     private static void ReturnToGrid(Inventory inventory, ItemDrop.ItemData item)
     {
-        if (!WornSlots.IsWornPosition(item.m_gridPos.x, item.m_gridPos.y))
+        if (!IsWorn(inventory, item))
         {
             return;
         }

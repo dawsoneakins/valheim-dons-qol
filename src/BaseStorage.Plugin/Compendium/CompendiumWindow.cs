@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Text;
 using BaseStorage.Core.Compendium;
 using BaseStorage.Core.Ui;
+using BaseStorage.Plugin.BaseMenu;
+using BaseStorage.Plugin.Feeding;
 using BaseStorage.Plugin.Patching;
 using BaseStorage.Plugin.Ui;
 using TMPro;
@@ -22,6 +24,9 @@ internal static class CompendiumWindow
     internal const string TickKey = "BaseStorage.Plugin.Compendium.CompendiumWindow.Tick";
 
     private const string ClickKey = "BaseStorage.Plugin.Compendium.CompendiumWindow.Click";
+    private const string TabHomeId = "compendium.tab.home";
+    private const string TabFrontierId = "compendium.tab.frontier";
+    private const string TabSettingsId = "compendium.tab.settings";
     private const string TabItemsId = "compendium.tab.items";
     private const string TabCreaturesId = "compendium.tab.creatures";
     private const string TabBiomesId = "compendium.tab.biomes";
@@ -39,12 +44,15 @@ internal static class CompendiumWindow
     private const float IconSize = 176f;
     private const float IconPad = 8f;
     private const float IconFrameSize = IconSize + (2f * IconPad);
-    private const float TabWidth = 130f;
+    private const float TabWidth = 116f;
     private const float PageFontSize = 20f;
 
     private static readonly List<RowView> Rows = new List<RowView>();
     private static readonly Stack<string> History = new Stack<string>();
     private static readonly Vector3[] Corners = new Vector3[4];
+    private static readonly List<Container> Holding = new List<Container>();
+    private static readonly Color SilhouetteColor = new Color(0.02f, 0.02f, 0.03f, 1f);
+    private static readonly Color RuneColor = new Color(0.55f, 0.77f, 0.85f, 0.9f);
 
     private static CompendiumBook? book;
     private static GameCompendiumSource? source;
@@ -60,9 +68,13 @@ internal static class CompendiumWindow
     private static TMP_Text? listEmpty;
     private static Image? icon;
     private static Image? iconFrame;
+    private static Outline? iconGlow;
+    private static CompendiumKnowledge? knowledge;
+    private static CompendiumStock stock = CompendiumStock.None;
+    private static string? confirming;
     private static TMP_InputField? search;
     private static IReadOnlyList<CompendiumPage> results = Array.Empty<CompendiumPage>();
-    private static CompendiumKind kind = CompendiumKind.Item;
+    private static CompendiumKind kind = CompendiumKind.Home;
     private static string? current;
     private static float listHeight;
     private static float pageHeight;
@@ -97,15 +109,11 @@ internal static class CompendiumWindow
         try
         {
             // The game's data is read once per world. The book is rebuilt on every open, because the player may have discovered more.
-            if (data == null || source == null || bookWorld != ZNetScene.instance)
-            {
-                source = new GameCompendiumSource();
-                data = source.Read();
-                icons = source.Icons;
-                bookWorld = ZNetScene.instance;
-            }
-
-            book = CompendiumBuilder.Build(data, source.ReadKnowledge(player));
+            EnsureData();
+            knowledge = source!.ReadKnowledge(player);
+            stock = ReadStock(player);
+            confirming = null;
+            Rebuild(player);
         }
         catch (Exception)
         {
@@ -122,12 +130,92 @@ internal static class CompendiumWindow
         root.SetAsLastSibling();
         Place(gui);
         RefreshList();
+        if (current == null || book?.Find(current) == null)
+        {
+            ShowTab(kind);
+        }
+        else
+        {
+            Render(current);
+        }
+    }
+
+    /// <summary>Gets the game's data for this world, reading it the first time.</summary>
+    /// <param name="reader">The reader, which also reads the player's knowledge.</param>
+    /// <param name="read">The data.</param>
+    /// <returns>False when the world isn't ready.</returns>
+    internal static bool TryData(out GameCompendiumSource? reader, out CompendiumData? read)
+    {
+        reader = null;
+        read = null;
+        if (ObjectDB.instance == null || ZNetScene.instance == null)
+        {
+            return false;
+        }
+
+        EnsureData();
+        reader = source;
+        read = data;
+        return reader != null && read != null;
+    }
+
+    private static void EnsureData()
+    {
+        if (data == null || source == null || bookWorld != ZNetScene.instance)
+        {
+            source = new GameCompendiumSource();
+            data = source.Read();
+            icons = source.Icons;
+            bookWorld = ZNetScene.instance;
+        }
+    }
+
+    private static CompendiumStock ReadStock(Player player)
+    {
+        var inBase = new Dictionary<string, int>(StringComparer.Ordinal);
+        var result = new CompendiumStock(StationFeeder.CountBase(player.transform.position, inBase));
+        foreach (KeyValuePair<string, int> pair in inBase)
+        {
+            result.Base[pair.Key] = pair.Value;
+        }
+
+        foreach (ItemDrop.ItemData item in player.GetInventory().GetAllItems())
+        {
+            if (item.m_dropPrefab != null)
+            {
+                result.Carried.TryGetValue(item.m_dropPrefab.name, out int count);
+                result.Carried[item.m_dropPrefab.name] = count + item.m_stack;
+            }
+        }
+
+        return result;
+    }
+
+    /// <summary>Builds the book from what's known now. On the journal's first use, everything already known counts as read.</summary>
+    private static void Rebuild(Player player)
+    {
+        CompendiumJournal journal = CompendiumJournalStore.For(player);
+        book = CompendiumJourney.Build(data!, knowledge!, journal, stock, confirming);
+        var discovered = new List<string>();
+        foreach (CompendiumPage page in book.Pages)
+        {
+            if (CompendiumJourney.IsDiscovery(page))
+            {
+                discovered.Add(page.Id);
+            }
+        }
+
+        if (journal.Start(discovered))
+        {
+            CompendiumJournalStore.Save(player);
+        }
     }
 
     /// <summary>Notes what the player is meeting, and closes the window when the inventory has closed.</summary>
     internal static void Tick() => PatchSafety.Run(TickKey, static () =>
     {
         CompendiumSightingTracker.Tick();
+        CompendiumTracker.Tick();
         if (IsOpen && !InventoryGui.IsVisible())
         {
             Close();
@@ -138,6 +226,12 @@ internal static class CompendiumWindow
     /// <param name="id">The page's id.</param>
     internal static void Show(string id)
     {
+        if (id.StartsWith(CompendiumJourney.ActionPrefix, StringComparison.Ordinal))
+        {
+            Act(id);
+            return;
+        }
+
         if (book?.Find(id) == null)
         {
             return;
@@ -149,6 +243,66 @@ internal static class CompendiumWindow
         }
 
         Render(id);
+    }
+
+    /// <summary>Carries out a link that is an action: a hint, a reveal, tracking, a setting, or highlighting chests.</summary>
+    private static void Act(string action)
+    {
+        Player? player = Player.m_localPlayer;
+        if (player == null || data == null || knowledge == null)
+        {
+            return;
+        }
+
+        if (action.StartsWith(CompendiumJourney.HighlightAction, StringComparison.Ordinal))
+        {
+            // The glow is on the chests in the world, so the inventory closes to show it.
+            StationFeeder.FindHolding(player.transform.position, action.Substring(CompendiumJourney.HighlightAction.Length), Holding);
+            if (Holding.Count > 0)
+            {
+                ChestHighlight.ShowAll(Holding);
+                InventoryGui.instance?.Hide();
+            }
+
+            return;
+        }
+
+        CompendiumJournal journal = CompendiumJournalStore.For(player);
+        if (CompendiumJourney.Apply(journal, action, out string? confirm))
+        {
+            CompendiumJournalStore.Save(player);
+        }
+
+        confirming = confirm;
+        Rebuild(player);
+        RefreshList();
+        if (current != null && book?.Find(current) != null)
+        {
+            Render(current);
+        }
+        else
+        {
+            ShowTab(CompendiumKind.Home);
+        }
+    }
+
+    private static void ShowTab(CompendiumKind tab)
+    {
+        kind = tab;
+        History.Clear();
+        current = null;
+        RefreshList();
+        string? page = tab switch
+        {
+            CompendiumKind.Home => CompendiumJourney.HomePage,
+            CompendiumKind.Frontier => CompendiumJourney.FrontierPage,
+            CompendiumKind.Settings => CompendiumJourney.SettingsPage,
+            _ => null,
+        };
+        if (page != null)
+        {
+            Render(page);
+        }
     }
 
     private static void Close()
@@ -191,11 +345,14 @@ internal static class CompendiumWindow
 
     private static void CreateBar(InventoryGui gui)
     {
-        Pin(VanillaButtonFactory.Create(gui.m_stackAllButton, root!, TabItemsId, StringKeys.CompendiumTabItems, static () => SelectKind(CompendiumKind.Item)), BarX(0));
-        Pin(VanillaButtonFactory.Create(gui.m_stackAllButton, root!, TabCreaturesId, StringKeys.CompendiumTabCreatures, static () => SelectKind(CompendiumKind.Creature)), BarX(1));
-        Pin(VanillaButtonFactory.Create(gui.m_stackAllButton, root!, TabBiomesId, StringKeys.CompendiumTabBiomes, static () => SelectKind(CompendiumKind.Biome)), BarX(2));
-        Pin(VanillaButtonFactory.Create(gui.m_stackAllButton, root!, TabPiecesId, StringKeys.CompendiumTabPieces, static () => SelectKind(CompendiumKind.Piece)), BarX(3));
-        Pin(VanillaButtonFactory.Create(gui.m_stackAllButton, root!, BackId, StringKeys.CompendiumBack, static () => PatchSafety.Run(ClickKey, GoBack)), BarX(4));
+        Pin(VanillaButtonFactory.Create(gui.m_stackAllButton, root!, TabHomeId, StringKeys.CompendiumTabHome, static () => SelectKind(CompendiumKind.Home)), BarX(0));
+        Pin(VanillaButtonFactory.Create(gui.m_stackAllButton, root!, TabItemsId, StringKeys.CompendiumTabItems, static () => SelectKind(CompendiumKind.Item)), BarX(1));
+        Pin(VanillaButtonFactory.Create(gui.m_stackAllButton, root!, TabCreaturesId, StringKeys.CompendiumTabCreatures, static () => SelectKind(CompendiumKind.Creature)), BarX(2));
+        Pin(VanillaButtonFactory.Create(gui.m_stackAllButton, root!, TabBiomesId, StringKeys.CompendiumTabBiomes, static () => SelectKind(CompendiumKind.Biome)), BarX(3));
+        Pin(VanillaButtonFactory.Create(gui.m_stackAllButton, root!, TabPiecesId, StringKeys.CompendiumTabPieces, static () => SelectKind(CompendiumKind.Piece)), BarX(4));
+        Pin(VanillaButtonFactory.Create(gui.m_stackAllButton, root!, TabFrontierId, StringKeys.CompendiumTabFrontier, static () => SelectKind(CompendiumKind.Frontier)), BarX(5));
+        Pin(VanillaButtonFactory.Create(gui.m_stackAllButton, root!, TabSettingsId, StringKeys.CompendiumTabSettings, static () => SelectKind(CompendiumKind.Settings)), BarX(6));
+        Pin(VanillaButtonFactory.Create(gui.m_stackAllButton, root!, BackId, StringKeys.CompendiumBack, static () => PatchSafety.Run(ClickKey, GoBack)), BarX(7));
     }
 
     private static float BarX(int index) => Margin + (index * (TabWidth + Margin));
@@ -253,6 +410,10 @@ internal static class CompendiumWindow
         iconFrame.enabled = false;
         GameObject iconNode = VanillaButtonFactory.CreateNode(frameNode.transform, "compendium.icon", new Vector2(IconSize, IconSize), new Vector2(IconPad, -IconPad), typeof(RectTransform), typeof(Image));
         icon = iconNode.GetComponent<Image>();
+        iconGlow = iconNode.AddComponent<Outline>();
+        iconGlow.effectColor = RuneColor;
+        iconGlow.effectDistance = new Vector2(2f, -2f);
+        iconGlow.enabled = false;
         icon.preserveAspect = true;
         icon.raycastTarget = false;
         icon.enabled = false;
@@ -356,11 +517,7 @@ internal static class CompendiumWindow
         return text;
     }
 
-    private static void SelectKind(CompendiumKind selected) => PatchSafety.Run(ClickKey, selected, static value =>
-    {
-        kind = value;
-        RefreshList();
-    });
+    private static void SelectKind(CompendiumKind selected) => PatchSafety.Run(ClickKey, selected, static value => ShowTab(value));
 
     private static void RefreshList()
     {
@@ -421,6 +578,12 @@ internal static class CompendiumWindow
         }
 
         current = id;
+        Player? player = Player.m_localPlayer;
+        if (player != null && CompendiumJourney.IsDiscovery(page) && CompendiumJournalStore.For(player).MarkRead(id))
+        {
+            CompendiumJournalStore.Save(player);
+        }
+
         pageText.text = PageMarkup(page);
         pageText.ForceMeshUpdate();
         var textRect = (RectTransform)pageText.transform;
@@ -430,10 +593,16 @@ internal static class CompendiumWindow
         pageContent.anchoredPosition = Vector2.zero;
         if (icon != null)
         {
+            // A silhouette is its subject's icon in black, with a faint outline so it reads on the dark frame.
+            bool silhouette = page.Kind == CompendiumKind.Frontier;
+            bool named = silhouette && player != null && CompendiumJournalStore.For(player).IsRevealed(id);
+            string iconId = silhouette ? id.Substring(CompendiumFrontier.Prefix.Length) : id;
             Sprite? sprite = null;
-            icons?.TryGetValue(id, out sprite);
+            icons?.TryGetValue(iconId, out sprite);
             icon.sprite = sprite;
+            icon.color = silhouette && !named ? SilhouetteColor : Color.white;
             icon.enabled = sprite != null;
+            iconGlow!.enabled = silhouette && !named && sprite != null;
             iconFrame!.enabled = sprite != null;
         }
     }

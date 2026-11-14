@@ -85,6 +85,7 @@ public sealed class PatchTargetShapeTests
             new("CookingStation", "GetHoverTextParametersNone", TargetKind.OverloadCompanion, "", "GetHoverText"),
             new("CookingStation", "Interact", TargetKind.MethodOverloads, "Interact", null),
             new("CookingStation", "InteractParametersUserHoldAlt", TargetKind.OverloadCompanion, "Humanoid,System.Boolean,System.Boolean", "Interact"),
+            new("CookingStation", "SetSlotVisualRpc", TargetKind.MethodNameOnly, "RPC_SetSlotVisual", null),
             new("CookingStation", "TypeName", TargetKind.TypeEntry, "CookingStation", null),
             new("CraftingStation", "FieldCraftingSkill", TargetKind.FieldEntry, "m_craftingSkill", null),
             new("CraftingStation", "FieldCraftingSkillType", TargetKind.FieldTypeCompanion, "Skills+SkillType", "FieldCraftingSkill"),
@@ -519,11 +520,11 @@ public sealed class PatchTargetShapeTests
         // Edited by S-E004-012 (ADR-GWIN-136): plus the 15 station-actions rows (1, 1, 1, 0, 6, 6) = 385.
         // Edited by S-E004-015 (ADR-GWIN-143): plus the seven Deposit rows (0, 0, 0, 1, 3, 3) = 392, as 48, 41, 45, 102, 78 and 78.
         // Edited by S-E010-002 (organize-console-command 6.2): 404, by kind 52, 43, 47, 102, 80 and 80.
-        Assert.Equal(472, entries.Count); // Edited by S-QR-002 (ADR-GWIN-176)
+        Assert.Equal(473, entries.Count); // Edited for cooked food: plus CookingStation.SetSlotVisualRpc. // Edited by S-QR-002 (ADR-GWIN-176)
         Assert.Equal(57, entries.Count(e => e.Kind == TargetKind.TypeEntry));
         Assert.Equal(68, entries.Count(e => e.Kind == TargetKind.MethodOverloads));
         Assert.Equal(73, entries.Count(e => e.Kind == TargetKind.OverloadCompanion)); // Edited by S-QR-002 (ADR-GWIN-176)
-        Assert.Equal(104, entries.Count(e => e.Kind == TargetKind.MethodNameOnly));
+        Assert.Equal(105, entries.Count(e => e.Kind == TargetKind.MethodNameOnly)); // Edited for cooked food: plus SetSlotVisualRpc.
         Assert.Equal(85, entries.Count(e => e.Kind == TargetKind.FieldEntry)); // Edited by S-QR-002 (ADR-GWIN-176)
         Assert.Equal(85, entries.Count(e => e.Kind == TargetKind.FieldTypeCompanion)); // Edited by S-QR-002 (ADR-GWIN-176)
         Assert.Equal(
@@ -551,6 +552,7 @@ public sealed class PatchTargetShapeTests
                 new HarmonyEntry("HumanoidEquipItem", "Humanoid.EquipItem(ItemDrop+ItemData,System.Boolean)"),
                 new HarmonyEntry("HumanoidIsItemEquiped", "Humanoid.IsItemEquiped(ItemDrop+ItemData)"),
                 new HarmonyEntry("HumanoidUnequipItem", "Humanoid.UnequipItem(ItemDrop+ItemData,System.Boolean)"),
+                new HarmonyEntry("InventoryCanAddItem", "Inventory.CanAddItem(ItemDrop+ItemData,System.Int32)"),
                 new HarmonyEntry("InventoryGetEmptySlots", "Inventory.GetEmptySlots()"),
                 new HarmonyEntry("InventoryGridOnLeftDown", "InventoryGrid.OnLeftDown(UIInputHandler)"),
                 new HarmonyEntry("InventoryGridOnRightDown", "InventoryGrid.OnRightDown(UIInputHandler)"),

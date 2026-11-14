@@ -42,6 +42,7 @@ public sealed class PluginFavouritesPatchGuardTests
                 "BaseStorage.Plugin.CharacterMenu.HumanoidDropInvalidItemsPatch.Prefix",
                 "BaseStorage.Plugin.CharacterMenu.HumanoidEquipItemPatch.Postfix",
                 "BaseStorage.Plugin.CharacterMenu.HumanoidUnequipItemPatch.Postfix",
+                "BaseStorage.Plugin.CharacterMenu.InventoryCanAddItemPatch.Postfix",
                 "BaseStorage.Plugin.CharacterMenu.InventoryGetEmptySlotsPatch.Postfix",
                 "BaseStorage.Plugin.CharacterMenu.InventoryHaveEmptySlotPatch.Postfix",
                 "BaseStorage.Plugin.CharacterMenu.InventoryMoveInventoryToGravePatch.Postfix",

@@ -212,6 +212,7 @@ public sealed class PatchTargetNamesTests
                 ("HumanoidEquipItem", "Humanoid.EquipItem(ItemDrop+ItemData,System.Boolean)"),
                 ("HumanoidIsItemEquiped", "Humanoid.IsItemEquiped(ItemDrop+ItemData)"),
                 ("HumanoidUnequipItem", "Humanoid.UnequipItem(ItemDrop+ItemData,System.Boolean)"),
+                ("InventoryCanAddItem", "Inventory.CanAddItem(ItemDrop+ItemData,System.Int32)"),
                 ("InventoryGetEmptySlots", "Inventory.GetEmptySlots()"),
                 ("InventoryGridOnLeftDown", "InventoryGrid.OnLeftDown(UIInputHandler)"),
                 ("InventoryGridOnRightDown", "InventoryGrid.OnRightDown(UIInputHandler)"),

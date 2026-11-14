@@ -122,6 +122,9 @@ public sealed class CompendiumBook
     /// <summary>Gets the number of pages.</summary>
     public int Count => pages.Count;
 
+    /// <summary>Gets every page.</summary>
+    public IEnumerable<CompendiumPage> Pages => pages.Values;
+
     /// <summary>Finds a page.</summary>
     /// <param name="id">The page's id.</param>
     /// <returns>The page, or null.</returns>

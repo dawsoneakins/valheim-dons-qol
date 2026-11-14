@@ -31,7 +31,15 @@ Plan exactly these stories, in this dependency order. Split one only if it canno
 
 **S-QF-002 Fires and torches.** Campfires, hearths, bonfires, standing torches and other `Fireplace` pieces can keep fuel topped up from the base with the fuel the piece itself accepts. The player opens the same feed panel with the same Shift+use gesture. The hover text shows it is kept fed.
 
-**S-QF-003 Fermenters and cooking stations.** Fermenters are filled from chests holding mead bases, and cooking stations with raw food the station accepts. The player picks which items in the feed panel. The mod only puts items in; it does not collect finished items, so nothing burns unattended beyond what the player chose. A cooking station with an empty slot takes one item per slot.
+**S-QF-003 Fermenters and cooking stations.** Fermenters are filled from chests holding mead bases, and cooking stations with raw food the station accepts. The player picks which items in the feed panel. A cooking station with an empty slot takes one item per slot. Taking finished food off is S-QF-004.
+
+**S-QF-004 Collect cooked food (0.5.3).** Cooking stations, iron cooking stations and ovens get a "Cooked food" button in the feed panel that cycles Off, To chests and Drop, stored in `basestorage.collect` on the station. A station the player never set collects to chests while it is kept fed, and is left alone otherwise. Only the station's owner collects, one item per transfer:
+
+- **To chests:** the item goes to the nearest chest assigned its category, else the nearest unassigned chest already holding it (`CookedFoodPlanner`). Keep chests, other categories, graves and locked chests are never used. The chest is reserved with the feeding handshake, and the slot is emptied only once the chest has room, in the same frame as the item goes in. When no chest in the base takes it, or the station is outside a base, the item is dropped instead so the station keeps cooking. A chest that is busy is waited for rather than dropped past.
+- **Drop:** the item is dropped beside the station through the game's own `CookingStation.SpawnItem`, as if a player took it.
+- Burnt food is never taken, so the player sees it. A cheated item is always dropped, which keeps its mark. Fermenters are not included yet.
+
+Unverified until playtested (Q-CF-1 to Q-CF-4): food lands in the Cooked Food chest within a few seconds of cooking; Drop leaves it beside the station; a second player nearby sees the slot empty and no copy appears; burnt food stays. The feed panel button has no gamepad control yet.
 
 ### Epic S: sort a chest
 

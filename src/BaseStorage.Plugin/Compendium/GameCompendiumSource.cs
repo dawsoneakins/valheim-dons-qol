@@ -37,7 +37,33 @@ internal sealed class GameCompendiumSource
         ReadRecipes();
         ReadPrefabs();
         ReadWorld();
+        AddCreatureIcons();
         return data;
+    }
+
+    /// <summary>Gives each creature its trophy's icon, so its page and its silhouette have a picture. A creature without a trophy has none.</summary>
+    private void AddCreatureIcons()
+    {
+        var trophies = new HashSet<string>();
+        foreach (ItemRecord item in data.Items)
+        {
+            if (item.Category == ItemCategory.Trophy)
+            {
+                trophies.Add(item.Id);
+            }
+        }
+
+        foreach (CreatureRecord creature in data.Creatures)
+        {
+            foreach (CreatureDropRecord drop in creature.Drops)
+            {
+                if (trophies.Contains(drop.ItemId) && icons.TryGetValue(CompendiumBuilder.ItemPage(drop.ItemId), out Sprite? sprite))
+                {
+                    icons[CompendiumBuilder.CreaturePage(creature.Id)] = sprite;
+                    break;
+                }
+            }
+        }
     }
 
     /// <summary>Maps one of the game's biomes.</summary>
